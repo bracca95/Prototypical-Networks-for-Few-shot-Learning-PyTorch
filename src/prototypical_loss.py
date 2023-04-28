@@ -12,8 +12,8 @@ class PrototypicalLoss(Module):
         super(PrototypicalLoss, self).__init__()
         self.n_support = n_support
 
-    def forward(self, input, target):
-        return prototypical_loss(input, target, self.n_support)
+    def forward(self, x, target):
+        return prototypical_loss(x, target, self.n_support)
 
 
 def euclidean_dist(x, y):
@@ -34,7 +34,7 @@ def euclidean_dist(x, y):
     return torch.pow(x - y, 2).sum(2)
 
 
-def prototypical_loss(input, target, n_support):
+def prototypical_loss(recons, target, n_support):
     '''
     Inspired by https://github.com/jakesnell/prototypical-networks/blob/master/protonets/models/few_shot.py
 
@@ -45,13 +45,13 @@ def prototypical_loss(input, target, n_support):
     classes, of appartaining to a class c, loss and accuracy are then computed
     and returned
     Args:
-    - input: the model output for a batch of samples
+    - recons: the model output for a batch of samples
     - target: ground truth for the above batch of samples
     - n_support: number of samples to keep in account when computing
       barycentres, for each one of the current classes
     '''
     target_cpu = target.to('cpu')
-    input_cpu = input.to('cpu')
+    input_cpu = recons.to('cpu')
 
     def supp_idxs(c):
         # FIXME when torch will support where as np
@@ -70,7 +70,7 @@ def prototypical_loss(input, target, n_support):
     # FIXME when torch will support where as np
     query_idxs = torch.stack(list(map(lambda c: target_cpu.eq(c).nonzero()[n_support:], classes))).view(-1)
 
-    query_samples = input.to('cpu')[query_idxs]
+    query_samples = recons.to('cpu')[query_idxs]
     dists = euclidean_dist(query_samples, prototypes)
 
     log_p_y = F.log_softmax(-dists, dim=1).view(n_classes, n_query, -1)

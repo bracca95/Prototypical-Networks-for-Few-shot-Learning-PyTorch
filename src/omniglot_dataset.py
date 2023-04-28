@@ -1,12 +1,15 @@
 # coding=utf-8
 from __future__ import print_function
-import torch.utils.data as data
-from PIL import Image
-import numpy as np
-import shutil
+
+import os
 import errno
 import torch
-import os
+import shutil
+import numpy as np
+
+from torch.utils.data import Dataset as PyTorchDataset
+from PIL import Image
+
 
 '''
 Inspired by https://github.com/pytorch/vision/pull/46
@@ -15,7 +18,7 @@ Inspired by https://github.com/pytorch/vision/pull/46
 IMG_CACHE = {}
 
 
-class OmniglotDataset(data.Dataset):
+class OmniglotDataset(PyTorchDataset):
     vinalys_baseurl = 'https://raw.githubusercontent.com/jakesnell/prototypical-networks/master/data/omniglot/splits/vinyals/'
     vinyals_split_sizes = {
         'test': vinalys_baseurl + 'test.txt',
@@ -52,15 +55,12 @@ class OmniglotDataset(data.Dataset):
         if not self._check_exists():
             raise RuntimeError(
                 'Dataset not found. You can use download=True to download it')
-        self.classes = get_current_classes(os.path.join(
-            self.root, self.splits_folder, mode + '.txt'))
-        self.all_items = find_items(os.path.join(
-            self.root, self.processed_folder), self.classes)
+        self.classes = get_current_classes(os.path.join(self.root, self.splits_folder, mode + '.txt'))
+        self.all_items = find_items(os.path.join(self.root, self.processed_folder), self.classes)
 
         self.idx_classes = index_classes(self.all_items)
 
-        paths, self.y = zip(*[self.get_path_label(pl)
-                              for pl in range(len(self))])
+        paths, self.y = zip(*[self.get_path_label(pl) for pl in range(len(self))])
 
         self.x = map(load_img, paths, range(len(paths)))
         self.x = list(self.x)
@@ -78,8 +78,7 @@ class OmniglotDataset(data.Dataset):
         filename = self.all_items[index][0]
         rot = self.all_items[index][-1]
         img = str.join(os.sep, [self.all_items[index][2], filename]) + rot
-        target = self.idx_classes[self.all_items[index]
-                                  [1] + self.all_items[index][-1]]
+        target = self.idx_classes[self.all_items[index][1] + self.all_items[index][-1]]
         if self.target_transform is not None:
             target = self.target_transform(target)
 

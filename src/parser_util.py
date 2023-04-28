@@ -1,6 +1,7 @@
 # coding=utf-8
 import os
 import argparse
+from src.tools import Utils
 
 
 def get_parser():
@@ -13,7 +14,7 @@ def get_parser():
     parser.add_argument('-exp', '--experiment_root',
                         type=str,
                         help='root where to store models, losses and accuracies',
-                        default='..' + os.sep + 'output')
+                        default='output')
 
     parser.add_argument('-nep', '--epochs',
                         type=int,
@@ -76,7 +77,13 @@ def get_parser():
                         default=7)
 
     parser.add_argument('--cuda',
-                        action='store_true',
-                        help='enables cuda')
+                        type=Utils.str2bool,
+                        required=True,
+                        help='enables cuda if yes/y/true')
+    
+    parser.add_argument('--crop_size',
+                        type=int,
+                        default=28,
+                        help='crop size for DefectViews')
 
     return parser

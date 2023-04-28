@@ -70,3 +70,9 @@ class PrototypicalBatchSampler(object):
         returns the number of iterations (episodes) per epoch
         '''
         return self.iterations
+
+
+class DefectViewsSampler(PrototypicalBatchSampler):
+
+    def __init__(self, labels, classes_per_it, num_samples, iterations):
+        super().__init__(labels, classes_per_it, num_samples, iterations)
